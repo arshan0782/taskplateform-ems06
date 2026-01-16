@@ -15,9 +15,14 @@ const EmployeeDashboard = () => {
   const [tasks, setTasks] = useState([]);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState(null);
 
-  /* FETCH TASKS */
+  // 🔥 IMPORTANT STATES
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [feedback, setFeedback] = useState("");
+
+  /* =====================
+     FETCH TASKS
+  ====================== */
   const fetchTasks = async () => {
     try {
       const res = await api.get("/tasks/my-tasks");
@@ -31,13 +36,11 @@ const EmployeeDashboard = () => {
     fetchTasks();
   }, []);
 
-  /* FILTERS */
-  const activeTasks = tasks.filter(
-    (t) => t.status !== "Completed"
-  );
-  const completedTasks = tasks.filter(
-    (t) => t.status === "Completed"
-  );
+  /* =====================
+     FILTERS
+  ====================== */
+  const activeTasks = tasks.filter((t) => t.status !== "Completed");
+  const completedTasks = tasks.filter((t) => t.status === "Completed");
 
   return (
     <PageWrapper>
@@ -49,8 +52,7 @@ const EmployeeDashboard = () => {
         <p className="font-semibold">{user?.name}</p>
       </div>
 
-      <div className="flex gap-4 ">
-
+      <div className="flex gap-4">
         {/* 🔹 SIDEBAR */}
         <EmployeeSidebar
           user={user}
@@ -62,7 +64,6 @@ const EmployeeDashboard = () => {
 
         {/* 🔹 MAIN CONTENT */}
         <main className="flex-1">
-
           {/* DASHBOARD */}
           {activeTab === "dashboard" && (
             <>
@@ -85,9 +86,10 @@ const EmployeeDashboard = () => {
                   })
                   .then(fetchTasks)
               }
-              onComplete={(task) =>
-                setSelectedTask(task)
-              }
+              onComplete={(task) => {
+                setSelectedTask(task);
+                setFeedback("");
+              }}
             />
           )}
 
@@ -96,90 +98,117 @@ const EmployeeDashboard = () => {
             <EmpTaskGrid
               title="Completed Tasks"
               tasks={completedTasks}
-              onView={(task) =>
-                setSelectedTask(task)
-              }
+              onView={(task) => setSelectedTask(task)}
             />
           )}
-
         </main>
       </div>
 
-      {/* 🔍 VIEW COMPLETED TASK DETAILS MODAL */}
+      {/* =====================
+         FEEDBACK MODAL
+      ====================== */}
+      {selectedTask && selectedTask.status !== "Completed" && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded w-[90%] max-w-md shadow-lg">
+            <h3 className="text-lg font-semibold mb-2">
+              Complete Task
+            </h3>
+
+            <p className="text-sm text-gray-600 mb-2">
+              {selectedTask.title}
+            </p>
+
+            <textarea
+              className="w-full border rounded p-2 text-sm mb-4"
+              rows={4}
+              placeholder="Write your feedback..."
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+            />
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setSelectedTask(null)}
+                className="px-4 py-1 bg-gray-200 rounded"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={async () => {
+                  await api.put(
+                    `/tasks/update-task-status/${selectedTask._id}`,
+                    {
+                      status: "Completed",
+                      feedback,
+                    }
+                  );
+
+                  setSelectedTask(null);
+                  fetchTasks();
+                }}
+                className="px-4 py-1 bg-green-600 text-white rounded"
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================
+         VIEW COMPLETED TASK
+      ====================== */}
       {selectedTask && selectedTask.status === "Completed" && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded w-[90%] max-w-md shadow-lg">
-
-            {/* TITLE */}
             <h3 className="text-xl font-bold mb-2">
               {selectedTask.title}
             </h3>
 
-            {/* DESCRIPTION */}
             <p className="text-sm text-gray-600 mb-3">
               {selectedTask.description}
             </p>
 
-            {/* META INFO */}
             <div className="space-y-2 text-sm mb-4">
               <div>
-                <span className="font-medium">
-                  Status:
-                </span>{" "}
-                <TaskStatusBadge
-                  status={selectedTask.status}
-                />
+                <span className="font-medium">Status:</span>{" "}
+                <TaskStatusBadge status={selectedTask.status} />
               </div>
 
               <p>
-                <span className="font-medium">
-                  Priority:
-                </span>{" "}
+                <span className="font-medium">Priority:</span>{" "}
                 {selectedTask.priority}
               </p>
 
               <p>
-                <span className="font-medium">
-                  Deadline:
-                </span>{" "}
-                {new Date(
-                  selectedTask.deadline
-                ).toLocaleDateString()}
+                <span className="font-medium">Deadline:</span>{" "}
+                {new Date(selectedTask.deadline).toLocaleDateString()}
               </p>
             </div>
 
-            {/* FEEDBACK */}
             {selectedTask.feedback && (
               <div className="mb-4">
-                <p className="text-sm font-medium mb-1">
-                  Feedback
-                </p>
+                <p className="text-sm font-medium mb-1">Feedback</p>
                 <p className="text-sm text-gray-600">
                   {selectedTask.feedback}
                 </p>
               </div>
             )}
 
-            {/* COMPLETED DATE */}
             <p className="text-xs text-gray-400">
               Completed on{" "}
-              {new Date(
-                selectedTask.updatedAt
-              ).toLocaleString()}
+              {new Date(selectedTask.updatedAt).toLocaleString()}
             </p>
 
-            {/* ACTION */}
             <div className="flex justify-end mt-4">
               <button
-                onClick={() =>
-                  setSelectedTask(null)
-                }
+                onClick={() => setSelectedTask(null)}
                 className="px-4 py-1 bg-gray-200 rounded hover:bg-gray-300"
               >
                 Close
               </button>
             </div>
-
           </div>
         </div>
       )}

@@ -84,7 +84,7 @@ export const updateTaskStatus = async (req, res) => {
       return res.status(400).json({ message: "Invalid status" });
     }
 
-    const task = await Task.findById(req.params.id);
+    const task = await TaskModel.findById(req.params.id);
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
     }
@@ -102,7 +102,7 @@ export const updateTaskStatus = async (req, res) => {
 
     await task.save();
 
-    await ActivityLog.create({
+    await ActivityLogModel.create({
       action: feedback
         ? "FEEDBACK_SUBMITTED"
         : "STATUS_CHANGED",

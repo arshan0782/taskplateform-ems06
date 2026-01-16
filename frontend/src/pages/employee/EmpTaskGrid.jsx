@@ -35,11 +35,11 @@ const TaskGrid = ({
             </div>
 
             {/* ACTION BUTTON */}
-            <div className="mt-auto">
+            <div className="mt-auto ">
               {task.status === "Pending" && (
                 <button
                   onClick={() => onStart(task)}
-                  className="bg-blue-600 text-white px-3 py-1 rounded w-full"
+                  className="bg-blue-600 text-white px-3 py-1 rounded w-full cursor-pointer"
                 >
                   Start Task
                 </button>
@@ -48,7 +48,7 @@ const TaskGrid = ({
               {task.status === "In Progress" && (
                 <button
                   onClick={() => onComplete(task)}
-                  className="bg-green-600 text-white px-3 py-1 rounded w-full"
+                  className="bg-green-600 text-white px-3 py-1 rounded w-full cursor-pointer"
                 >
                   Complete Task
                 </button>
